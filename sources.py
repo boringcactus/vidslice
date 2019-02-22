@@ -82,11 +82,11 @@ class SourcesPanel(wx.Panel):
         threading.Thread(target=download).start()
 
     def handle_file_browse_pressed(self, _):
-        dialog = wx.FileDialog(self, message="message")
+        dialog = wx.FileDialog(self, style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dialog.ShowModal() == wx.ID_OK:
             self.file_text.SetValue(dialog.GetPath())
 
-    def handle_file_changed(self, event):
+    def handle_file_changed(self, _event):
         result = subprocess.run([
             'ffprobe', '-v', 'error', '-of', 'json',
             '-show_entries', 'format=start_time,duration:stream=index,codec_type,avg_frame_rate,width,height',

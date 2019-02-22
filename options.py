@@ -197,10 +197,10 @@ class OptionsPanel(wx.Panel):
         self.height.set_calc_new(round(orig_height / orig_width * new_width))
 
         orig_framerate = float(self.framerate.get_orig())
-        self.framerate.set_range(0, 10 * orig_framerate)
+        self.framerate.set_range(0, orig_framerate)
         self.framerate.set_calc_new(orig_framerate)
 
-    def update(self, path, info):
+    def update(self, info):
         import fractions
 
         if info is None:
@@ -224,3 +224,32 @@ class OptionsPanel(wx.Panel):
             self.Enable()
             self.Layout()
             self.enforce_constraints()
+
+    def ffmpeg_opts(self):
+        opts = []
+
+        if self.start_time.is_edit():
+            opts += ['-ss', str(self.start_time.get_final())]
+        elif self.end_time.is_edit() and self.duration.is_edit():
+            new_end = float(self.end_time.get_final())
+            new_duration = float(self.duration.get_final())
+            new_start = new_end - new_duration
+            opts += ['-ss', str(new_start)]
+        if self.end_time.is_edit():
+            opts += ['-to', str(self.end_time.get_final())]
+        if self.duration.is_edit():
+            opts += ['-t', str(self.duration.get_final())]
+
+        if self.width.is_edit() or self.height.is_edit():
+            width = str(self.width.get_final())
+            height = str(self.height.get_final())
+            if not self.width.is_edit():
+                width = "-1"
+            if not self.height.is_edit():
+                height = "-1"
+            opts += ['-vf', 'scale=' + width + ':' + height]
+
+        if self.framerate.is_edit():
+            opts += ['-r', str(self.framerate.get_final())]
+
+        return opts

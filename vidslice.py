@@ -1,36 +1,53 @@
+import sys
+
 import wx
+import wx.adv
 
-from sources import SourcesPanel
 from options import OptionsPanel
+from output import OutputPanel
+from sources import SourcesPanel
 
 
-class HelloFrame(wx.Frame):
+class VidsliceFrame(wx.Frame):
     """
-    A Frame that says Hello World
+    A Frame that contains vidslice logic
     """
 
     def __init__(self, *args, **kw):
         # ensure the parent's __init__ is called
-        super(HelloFrame, self).__init__(*args, **kw)
+        super(VidsliceFrame, self).__init__(*args, **kw)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        root_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetSizer(root_sizer)
+        main = wx.Panel(self)
+        root_sizer.Add(main, proportion=1, flag=wx.EXPAND, border=5)
+        main_sizer = wx.GridBagSizer(5, 5)
+        main.SetSizer(main_sizer)
 
         # set up sources panel
-        self.sources_panel = SourcesPanel(self)
-        main_sizer.Add(self.sources_panel, proportion=0, flag=wx.EXPAND, border=5)
+        self.sources_panel = SourcesPanel(main)
+        main_sizer.Add(self.sources_panel, wx.GBPosition(0, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
-        # create a panel in the frame
-        self.options_panel = OptionsPanel(self)
-        main_sizer.Add(self.options_panel, proportion=1, flag=wx.EXPAND, border=5)
-        self.sources_panel.on_update(lambda data: self.options_panel.update(self.sources_panel.get_file(), data))
+        # set up options panel
+        self.options_panel = OptionsPanel(main)
+        main_sizer.Add(self.options_panel, wx.GBPosition(1, 0), flag=wx.EXPAND)
+        main_sizer.AddGrowableRow(1, proportion=1)
+        self.sources_panel.on_update(self.options_panel.update)
+
+        # set up output panel
+        self.output_panel = OutputPanel(main, get_ffmpeg_args=self.options_panel.ffmpeg_opts)
+        main_sizer.Add(self.output_panel, wx.GBPosition(1, 1), flag=wx.EXPAND)
+        main_sizer.AddGrowableCol(1, proportion=1)
+        self.sources_panel.on_update(lambda data: self.output_panel.set_input_path(self.sources_panel.get_file(), data))
 
         # create a menu bar
         self.make_menu_bar()
 
-        # main_sizer.SetSizeHints(self)
-        self.SetSizer(main_sizer)
-        size = main_sizer.GetMinSize()
+        size = root_sizer.GetMinSize()
         self.SetMinClientSize(size)
+
+        if len(sys.argv) > 1:
+            self.sources_panel.file_text.SetValue(sys.argv[1])
 
     def make_menu_bar(self):
         """
@@ -43,8 +60,7 @@ class HelloFrame(wx.Frame):
         file_menu = wx.Menu()
         # The "\t..." syntax defines an accelerator key that also triggers
         # the same event
-        hello_item = file_menu.Append(-1, "&Hello...\tCtrl-H",
-                                      "Help string shown in status bar for this menu item")
+        hello_item = file_menu.Append(-1, "&Hello...\tCtrl-H")
         file_menu.AppendSeparator()
         # When using a stock ID we don't need to specify the menu item's
         # label
@@ -82,15 +98,20 @@ class HelloFrame(wx.Frame):
 
     def on_about(self, event):
         """Display an About Dialog"""
-        wx.MessageBox("This is a wxPython Hello World sample",
-                      "About Hello World 2",
-                      wx.OK | wx.ICON_INFORMATION)
+        info = wx.adv.AboutDialogInfo()
+        info.SetName("vidslice")
+        info.SetDescription("video manipulator wrapping youtube-dl and ffmpeg")
+        info.SetDevelopers(["Melody Horn"])
+        info.SetWebSite("https://www.boringcactus.com")
+
+        wx.adv.AboutBox(info)
 
 
 if __name__ == '__main__':
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
-    frm = HelloFrame(None, title='Hello World 2')
+    frm = VidsliceFrame(None, title='vidslice')
+    app.SetTopWindow(frm)
     frm.Show()
     app.MainLoop()
