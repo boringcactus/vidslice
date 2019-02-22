@@ -1,1 +1,2 @@
 wxPython==4.0.4
+cx_Freeze
