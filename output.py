@@ -33,9 +33,6 @@ class OutputPanel(wx.Panel):
         options_panel.SetSizer(options_sizer)
         self.silence = wx.CheckBox(options_panel, label="Silence")
         options_sizer.Add(self.silence, proportion=1, flag=wx.EXPAND, border=5)
-        self.improve_gif = wx.CheckBox(options_panel, label="Improve GIF")
-        options_sizer.Add(self.improve_gif, proportion=1, flag=wx.EXPAND, border=5)
-        self.improve_gif.Disable()
 
         self.run_panel = wx.Panel(self)
         root_sizer.Add(self.run_panel, flag=wx.EXPAND, border=5)
@@ -65,12 +62,6 @@ class OutputPanel(wx.Panel):
             self.run_panel.Enable()
         except FileNotFoundError:
             self.run_panel.Disable()
-        (name, ext) = os.path.splitext(name)
-        if ext == '.gif':
-            self.improve_gif.Enable()
-        else:
-            self.improve_gif.SetValue(False)
-            self.improve_gif.Disable()
 
     def handle_file_browse_pressed(self, _):
         dialog = wx.FileDialog(self, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
@@ -81,9 +72,12 @@ class OutputPanel(wx.Panel):
         self.logs.Clear()
         self.run_panel.Disable()
         real_args = self.get_ffmpeg_args()
+        output_path = self.file_text.GetValue()
+        (folder, name) = os.path.split(output_path)
+        (name, ext) = os.path.splitext(name)
         if self.silence.GetValue():
             real_args += ['-an']
-        if self.improve_gif.GetValue():
+        if ext == '.gif':
             filter_before = '[0:v] '
             filter_after = 'split [a][b];[a] palettegen [p];[b][p] paletteuse'
             filter_during = ''
@@ -95,7 +89,7 @@ class OutputPanel(wx.Panel):
                     real_args[i:i + 2] = []
                     break
             real_args += ['-filter_complex', filter_before + filter_during + filter_after]
-        args = ['ffmpeg', '-hide_banner', '-y', '-i', self.input_path] + real_args + [self.file_text.GetValue()]
+        args = ['ffmpeg', '-hide_banner', '-y', '-i', self.input_path] + real_args + [output_path]
         print(args)
 
         def run():
