@@ -3,10 +3,26 @@ import sys
 
 import wx
 import wx.adv
+from agithub.GitHub import GitHub
 
 from options import OptionsPanel
 from output import OutputPanel
 from sources import SourcesPanel, update_ytdl
+
+VERSION = "1.2"
+
+
+def check_update(parent):
+    client = GitHub()
+    status, data = client.repos.boringcactus.vidslice.releases.latest.get()
+    if status == 200:
+        newest_version = data['tag_name'].lstrip('v')
+        if VERSION != newest_version:
+            answer = wx.MessageBox("vidslice update available. download?", "Update", wx.YES_NO, parent)
+            if answer == wx.YES:
+                import webbrowser
+
+                webbrowser.open("https://github.com/boringcactus/vidslice/releases/latest")
 
 
 def has_ffmpeg():
@@ -109,7 +125,7 @@ class VidsliceFrame(wx.Frame):
         """Display an About Dialog"""
         info = wx.adv.AboutDialogInfo()
         info.SetName("vidslice")
-        info.SetVersion("1.1")
+        info.SetVersion(VERSION)
         info.SetDescription("video manipulator wrapping youtube-dl and ffmpeg")
         info.SetWebSite("https://github.com/boringcactus/vidslice")
 
@@ -130,4 +146,5 @@ if __name__ == '__main__':
         frm = VidsliceFrame(None, title='vidslice')
         app.SetTopWindow(frm)
         frm.Show()
+        check_update(frm)
     app.MainLoop()

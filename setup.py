@@ -6,6 +6,8 @@ buildOptions = dict(packages=[], excludes=[])
 
 import sys
 
+from vidslice import VERSION
+
 base = 'Win32GUI' if sys.platform == 'win32' else None
 
 executables = [
@@ -13,7 +15,7 @@ executables = [
 ]
 
 setup(name='vidslice',
-      version='1.1',
+      version=VERSION,
       description='',
       options=dict(build_exe=buildOptions),
       executables=executables)
