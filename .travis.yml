@@ -19,7 +19,8 @@ install:
 before_deploy:
   - ${PYTHON} setup.py build
   - pushd build
-  - zip vidslice-${TRAVIS_OS_NAME}.zip -r $(ls)/ || powershell Compress-Archive -Path $(ls) -DestinationPath vidslice-${TRAVIS_OS_NAME}.zip
+  - pushd .
+  - zip vidslice-${TRAVIS_OS_NAME}.zip -r * || powershell Compress-Archive -Path . -DestinationPath vidslice-${TRAVIS_OS_NAME}.zip
   - ls
   - popd
 deploy:
