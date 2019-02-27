@@ -10,15 +10,14 @@ addons:
 before_install:
   - sh scripts/setup_${TRAVIS_OS_NAME}.sh
 install:
-  - export PYTHON=python
-  - which python3 && export PYTHON=python3
+  - which python3 && export PYTHON=python3 || export PYTHON=python
   - echo ${PYTHON}
   - ${PYTHON} -m pip install -r requirements.txt
 after_success:
   - ${PYTHON} setup.py build
   - ls build
   - pushd build
-  - zip $(ls).zip -r $(ls)/ || powershell Compress-Archive -Path $(ls) -DestinationPath $(ls).zip
+  - zip vidslice-${TRAVIS_OS_NAME}.zip -r $(ls)/ || powershell Compress-Archive -Path $(ls) -DestinationPath vidslice-${TRAVIS_OS_NAME}.zip
   - ls
   - popd
 deploy:
