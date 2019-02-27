@@ -1,5 +1,6 @@
 import glob
 import json
+import os
 import subprocess
 import tempfile
 import threading
@@ -13,6 +14,30 @@ def has_ytdl():
         return True
     except FileNotFoundError:
         return False
+
+
+def update_ytdl(parent_win):
+    try:
+        youtube_dl_found = subprocess.run(['where', 'youtube-dl'], stdout=subprocess.PIPE, text=True)
+    except FileNotFoundError:
+        youtube_dl_found = subprocess.run(['which', 'youtube-dl'], stdout=subprocess.PIPE, text=True)
+    if youtube_dl_found.returncode != 0:
+        def poll():
+            answer = wx.MessageBox("Could not find youtube-dl. Open vidslice README?", "Error", wx.YES_NO, parent_win)
+            if answer == wx.YES:
+                import webbrowser
+                webbrowser.open("https://github.com/boringcactus/vidslice/blob/master/README.md")
+            return
+
+        wx.CallAfter(poll)
+    youtube_dl_path = youtube_dl_found.stdout.split("\n")[0]
+    old_mtime = os.stat(youtube_dl_path).st_mtime
+    proc = subprocess.run(["youtube-dl", "-U"], stdout=subprocess.PIPE, text=True)
+    if not proc.stdout.startswith("youtube-dl is up-to-date"):
+        while os.stat(youtube_dl_path).st_mtime == old_mtime:
+            from time import sleep
+            sleep(0.25)
+    wx.CallAfter(lambda: wx.MessageBox("Updated youtube-dl successfully", "Complete", wx.OK, parent_win))
 
 
 class SourcesPanel(wx.Panel):

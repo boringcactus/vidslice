@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import wx
@@ -5,7 +6,15 @@ import wx.adv
 
 from options import OptionsPanel
 from output import OutputPanel
-from sources import SourcesPanel
+from sources import SourcesPanel, update_ytdl
+
+
+def has_ffmpeg():
+    try:
+        subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except FileNotFoundError:
+        return False
 
 
 class VidsliceFrame(wx.Frame):
@@ -60,7 +69,7 @@ class VidsliceFrame(wx.Frame):
         file_menu = wx.Menu()
         # The "\t..." syntax defines an accelerator key that also triggers
         # the same event
-        hello_item = file_menu.Append(-1, "&Hello...\tCtrl-H")
+        update_item = file_menu.Append(-1, "Update youtube-dl")
         file_menu.AppendSeparator()
         # When using a stock ID we don't need to specify the menu item's
         # label
@@ -84,7 +93,7 @@ class VidsliceFrame(wx.Frame):
         # Finally, associate a handler function with the EVT_MENU event for
         # each of the menu items. That means that when that menu item is
         # activated then the associated handler function will be called.
-        self.Bind(wx.EVT_MENU, self.on_hello, hello_item)
+        self.Bind(wx.EVT_MENU, self.on_update, update_item)
         self.Bind(wx.EVT_MENU, self.on_exit, exit_item)
         self.Bind(wx.EVT_MENU, self.on_about, about_item)
 
@@ -92,17 +101,16 @@ class VidsliceFrame(wx.Frame):
         """Close the frame, terminating the application."""
         self.Close(True)
 
-    def on_hello(self, event):
-        """Say hello to the user."""
-        wx.MessageBox("Hello again from wxPython")
+    def on_update(self, event):
+        import threading
+        threading.Thread(target=update_ytdl, args=(self,)).start()
 
     def on_about(self, event):
         """Display an About Dialog"""
         info = wx.adv.AboutDialogInfo()
         info.SetName("vidslice")
         info.SetDescription("video manipulator wrapping youtube-dl and ffmpeg")
-        info.SetDevelopers(["Melody Horn"])
-        info.SetWebSite("https://www.boringcactus.com")
+        info.SetWebSite("https://github.com/boringcactus/vidslice")
 
         wx.adv.AboutBox(info)
 
@@ -111,7 +119,14 @@ if __name__ == '__main__':
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
-    frm = VidsliceFrame(None, title='vidslice')
-    app.SetTopWindow(frm)
-    frm.Show()
+    if not has_ffmpeg():
+        answer = wx.MessageBox("Could not find ffmpeg. Open vidslice README?", "Error", wx.YES_NO, None)
+        if answer == wx.YES:
+            import webbrowser
+
+            webbrowser.open("https://github.com/boringcactus/vidslice/blob/master/README.md")
+    else:
+        frm = VidsliceFrame(None, title='vidslice')
+        app.SetTopWindow(frm)
+        frm.Show()
     app.MainLoop()
