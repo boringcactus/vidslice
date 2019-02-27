@@ -1,4 +1,5 @@
 language: shell
+dist: xenial
 os:
   - linux
   - osx
