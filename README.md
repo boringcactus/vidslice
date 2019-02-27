@@ -18,7 +18,7 @@ You can't edit all three time fields, since two of them together always determin
 
 The Output panel lets you specify where you want the output to go.
 You can use any format ffmpeg supports.
-If you're creating a .gif, you'll likely want to check the "Improve GIF" box.
 For a silent video, which is just a better GIF as far as platforms like Telegram are concerned, check the "Silence" box.
+To use absurdly high compression settings, which might not even work depending on your output format, check the "Compress beyond recognition" box.
 
 The "Run" button will simply run the conversion; "Run & Preview" will show your output afterwards; "Run & Quit" will quit vidslice afterwards.

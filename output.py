@@ -33,6 +33,8 @@ class OutputPanel(wx.Panel):
         options_panel.SetSizer(options_sizer)
         self.silence = wx.CheckBox(options_panel, label="Silence")
         options_sizer.Add(self.silence, proportion=1, flag=wx.EXPAND, border=5)
+        self.deepfry = wx.CheckBox(options_panel, label="Compress beyond recognition")
+        options_sizer.Add(self.deepfry, proportion=1, flag=wx.EXPAND, border=5)
 
         self.run_panel = wx.Panel(self)
         root_sizer.Add(self.run_panel, flag=wx.EXPAND, border=5)
@@ -89,6 +91,11 @@ class OutputPanel(wx.Panel):
                     real_args[i:i + 2] = []
                     break
             real_args += ['-filter_complex', filter_before + filter_during + filter_after]
+        if self.deepfry.GetValue():
+            if ext == '.mp3':
+                real_args += ['-q:a', '9']
+            else:
+                real_args += ['-q:a', '0.1', '-crf', '51']
         args = ['ffmpeg', '-hide_banner', '-y', '-i', self.input_path] + real_args + [output_path]
         print(args)
 
