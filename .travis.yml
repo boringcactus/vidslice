@@ -1,11 +1,18 @@
-language: python
+language: generic
 os:
   - linux
   - osx
   - windows
-python: '3.6'
+addons:
+  homebrew:
+    packages:
+      - python
+before_install:
+  - sh scripts/setup_${TRAVIS_OS_NAME}.sh
+install:
+  - pip3 install -r requirements.txt || pip install -r requirements.txt
 after_success:
-  - python setup.py build
+  - python3 setup.py build || python setup.py build
   - ls build
 deploy:
   skip_cleanup: true
