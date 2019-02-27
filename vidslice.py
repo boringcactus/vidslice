@@ -109,6 +109,7 @@ class VidsliceFrame(wx.Frame):
         """Display an About Dialog"""
         info = wx.adv.AboutDialogInfo()
         info.SetName("vidslice")
+        info.SetVersion("1.0")
         info.SetDescription("video manipulator wrapping youtube-dl and ffmpeg")
         info.SetWebSite("https://github.com/boringcactus/vidslice")
 

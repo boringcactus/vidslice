@@ -17,17 +17,16 @@ install:
   - ${PYTHON} -m pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/ -r requirements.txt
 after_success:
   - ${PYTHON} setup.py build
-  - ls build
   - pushd build
   - zip vidslice-${TRAVIS_OS_NAME}.zip -r $(ls)/ || powershell Compress-Archive -Path $(ls) -DestinationPath vidslice-${TRAVIS_OS_NAME}.zip
   - ls
-  - popd
 deploy:
   skip_cleanup: true
   provider: releases
   api_key:
     secure: nKhTmc56igTYfpK0nxVcAmV59exVnWe3TWl4ZJ4XaQ7SjFIXcuraXzkVErT8Si4XfEVm1USlHt8K/lE8tavMzXGwWknLLbrxcIXMPJ/LTu/rF3Q6+0jXypLxv4dTPIj5cFsrzjoGSV7zqZ6ajrWcPaPk3OI5MhWHnAMkY+2RImBh+KEHlmve1drsWo1Sne4J+3kJibIMNqWlcY2RXOmMN47Ouw/an6Lgbq9PGeNwjwZxrARXJ5G3Kiv7WjTlowpFEyI3ECadfOlWA5yQIO3ko2S33Qsi7rbmin2DZjxtWFxsQ+M3+6F7yR0u+dK09TAidXY1g0f86eTq4ESr8n+gfGVI2rrRyG7A5+qHVUZv92CPcpq+EfdLKbGlIXV3Avtm0POQKmr7LHboBpKsAO2Tf6Rkkxe6C4s3uIKVqnB8XnDMfe+JbApgtCpyLaiUiRmlFrfK6Gw7deAUs5qA4qSMFU7Fal13rBnlZH8Wyx3nkNAD1ZOnS2WyTN309/HmxzKVXp+3GgfhSr9eA2r9guKC1yM++JgewASr91mqHwFsS1cl8rtSTDzht5q3U8SCjg4MKK15qF2Bb5NsJ1o5O4T30kcS5dWmO0mND6c/BesucMdK5duQU/qYstvNEjUfJ5G0p8+VdPrum40wKH+8ytFSB4YJPwmidUvxG6j2pnBx/PU=
-  file: foo
+  file_glob: true
+  file: build/*.zip
   on:
     repo: boringcactus/vidslice
     tags: true
