@@ -52,6 +52,9 @@ class Property:
             self.edit.Disable()
             self.new.Disable()
 
+    def is_enabled(self):
+        return self.edit.Enabled
+
     def is_edit(self):
         return self.edit.GetValue()
 
@@ -186,19 +189,21 @@ class OptionsPanel(wx.Panel):
             self.end_time.set_calc_new(new_end)
             self.duration.set_calc_new(new_duration)
 
-        orig_width = int(self.width.get_orig())
-        orig_height = int(self.height.get_orig())
-        new_width = int(self.width.get_final())
-        new_height = int(self.height.get_final())
-        self.width.set_range(1, 10 * orig_width)
-        self.height.set_range(1, 10 * orig_height)
+        if self.width.is_enabled() and self.height.is_enabled():
+            orig_width = int(self.width.get_orig())
+            orig_height = int(self.height.get_orig())
+            new_width = int(self.width.get_final())
+            new_height = int(self.height.get_final())
+            self.width.set_range(1, 10 * orig_width)
+            self.height.set_range(1, 10 * orig_height)
 
-        self.width.set_calc_new(round(orig_width / orig_height * new_height))
-        self.height.set_calc_new(round(orig_height / orig_width * new_width))
+            self.width.set_calc_new(round(orig_width / orig_height * new_height))
+            self.height.set_calc_new(round(orig_height / orig_width * new_width))
 
-        orig_framerate = float(self.framerate.get_orig())
-        self.framerate.set_range(0, orig_framerate)
-        self.framerate.set_calc_new(orig_framerate)
+        if self.framerate.is_enabled():
+            orig_framerate = float(self.framerate.get_orig())
+            self.framerate.set_range(0, orig_framerate)
+            self.framerate.set_calc_new(orig_framerate)
 
     def update(self, info):
         import fractions
@@ -214,12 +219,19 @@ class OptionsPanel(wx.Panel):
 
             self.end_time.set_orig(start_time + duration)
 
-            video_stream = [stream for stream in info['streams'] if stream['codec_type'] == 'video'][0]
-            self.width.set_orig(video_stream['width'])
-            self.height.set_orig(video_stream['height'])
+            video_streams = [stream for stream in info['streams'] if
+                             stream['codec_type'] == 'video' and stream['avg_frame_rate'] != '0/0']
+            if len(video_streams) > 0:
+                video_stream = video_streams[0]
+                self.width.set_orig(video_stream['width'])
+                self.height.set_orig(video_stream['height'])
 
-            framerate = round(float(fractions.Fraction(video_stream['avg_frame_rate'])), 3)
-            self.framerate.set_orig(framerate)
+                framerate = round(float(fractions.Fraction(video_stream['avg_frame_rate'])), 3)
+                self.framerate.set_orig(framerate)
+            else:
+                self.width.disable()
+                self.height.disable()
+                self.framerate.disable()
 
             self.Enable()
             self.Layout()
