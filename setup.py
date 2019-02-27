@@ -13,7 +13,7 @@ executables = [
 ]
 
 setup(name='vidslice',
-      version='1.0',
+      version='1.1',
       description='',
       options=dict(build_exe=buildOptions),
       executables=executables)
