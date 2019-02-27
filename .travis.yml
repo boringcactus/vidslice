@@ -8,7 +8,8 @@ addons:
     packages:
       - python
 before_install:
-  - . sh scripts/setup_${TRAVIS_OS_NAME}.sh
+  - chmod +x scripts/setup_${TRAVIS_OS_NAME}.sh
+  - . scripts/setup_${TRAVIS_OS_NAME}.sh
 install:
   - which python3 && export PYTHON=python3 || export PYTHON=python
   - echo ${PYTHON}
