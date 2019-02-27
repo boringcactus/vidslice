@@ -21,6 +21,7 @@ before_deploy:
   - pushd build
   - zip vidslice-${TRAVIS_OS_NAME}.zip -r $(ls)/ || powershell Compress-Archive -Path $(ls) -DestinationPath vidslice-${TRAVIS_OS_NAME}.zip
   - ls
+  - popd
 deploy:
   skip_cleanup: true
   provider: releases
