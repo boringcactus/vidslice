@@ -13,6 +13,12 @@ EDIT_BOX_COL = 2
 NEW_COL = 3
 
 
+class FFmpegOptions:
+    def __init__(self, input, output):
+        self.input = input
+        self.output = output
+
+
 class Property:
     def __init__(self, parent, name, *, label=None, orig=None, edit=None, new_class=None, new=None):
         self.handlers = []
@@ -238,19 +244,20 @@ class OptionsPanel(wx.Panel):
             self.enforce_constraints()
 
     def ffmpeg_opts(self):
-        opts = []
+        input_opts = []
+        output_opts = []
 
         if self.start_time.is_edit():
-            opts += ['-ss', str(self.start_time.get_final())]
+            input_opts += ['-ss', str(self.start_time.get_final())]
         elif self.end_time.is_edit() and self.duration.is_edit():
             new_end = float(self.end_time.get_final())
             new_duration = float(self.duration.get_final())
             new_start = new_end - new_duration
-            opts += ['-ss', str(new_start)]
+            input_opts += ['-ss', str(new_start)]
         if self.end_time.is_edit():
-            opts += ['-to', str(self.end_time.get_final())]
+            output_opts += ['-to', str(self.end_time.get_final())]
         if self.duration.is_edit():
-            opts += ['-t', str(self.duration.get_final())]
+            output_opts += ['-t', str(self.duration.get_final())]
 
         if self.width.is_edit() or self.height.is_edit():
             width = str(self.width.get_final())
@@ -259,9 +266,9 @@ class OptionsPanel(wx.Panel):
                 width = "-1"
             if not self.height.is_edit():
                 height = "-1"
-            opts += ['-vf', 'scale=' + width + ':' + height]
+            output_opts += ['-vf', 'scale=' + width + ':' + height]
 
         if self.framerate.is_edit():
-            opts += ['-r', str(self.framerate.get_final())]
+            output_opts += ['-r', str(self.framerate.get_final())]
 
-        return opts
+        return FFmpegOptions(input_opts, output_opts)

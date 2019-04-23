@@ -4,9 +4,11 @@ import threading
 
 import wx
 
+from options import FFmpegOptions
+
 
 class OutputPanel(wx.Panel):
-    def __init__(self, *args, get_ffmpeg_args=lambda: [], **kw):
+    def __init__(self, *args, get_ffmpeg_args=lambda: FFmpegOptions([], []), **kw):
         super(OutputPanel, self).__init__(*args, **kw)
         self.update_listeners = []
         self.input_path = None
@@ -74,29 +76,31 @@ class OutputPanel(wx.Panel):
         self.logs.Clear()
         self.run_panel.Disable()
         real_args = self.get_ffmpeg_args()
+        input_args = real_args.input
+        output_args = real_args.output
         output_path = self.file_text.GetValue()
         (folder, name) = os.path.split(output_path)
         (name, ext) = os.path.splitext(name)
         if self.silence.GetValue():
-            real_args += ['-an']
+            output_args += ['-an']
         if ext == '.gif':
             filter_before = '[0:v] '
             filter_after = 'split [a][b];[a] palettegen [p];[b][p] paletteuse'
             filter_during = ''
-            if '-vf' in real_args:
-                for i in range(len(real_args) - 1):
-                    [a, b] = real_args[i:i + 2]
+            if '-vf' in output_args:
+                for i in range(len(output_args) - 1):
+                    [a, b] = output_args[i:i + 2]
                     if a == '-vf':
                         filter_during = b + ','
-                    real_args[i:i + 2] = []
+                    output_args[i:i + 2] = []
                     break
-            real_args += ['-filter_complex', filter_before + filter_during + filter_after]
+            output_args += ['-filter_complex', filter_before + filter_during + filter_after]
         if self.deepfry.GetValue():
             if ext == '.mp3':
-                real_args += ['-q:a', '9']
+                output_args += ['-q:a', '9']
             else:
-                real_args += ['-q:a', '0.1', '-crf', '51']
-        args = ['ffmpeg', '-hide_banner', '-y', '-i', self.input_path] + real_args + [output_path]
+                output_args += ['-q:a', '0.1', '-crf', '51']
+        args = ['ffmpeg', '-hide_banner', '-y'] + input_args + ['-i', self.input_path] + output_args + [output_path]
         print(args)
 
         def run():
