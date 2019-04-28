@@ -255,7 +255,7 @@ class OptionsPanel(wx.Panel):
             new_start = new_end - new_duration
             input_opts += ['-ss', str(new_start)]
         if self.end_time.is_edit():
-            output_opts += ['-to', str(self.end_time.get_final())]
+            input_opts += ['-to', str(self.end_time.get_final())]
         if self.duration.is_edit():
             output_opts += ['-t', str(self.duration.get_final())]
 
