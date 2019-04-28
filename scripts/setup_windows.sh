@@ -7,6 +7,6 @@ echo $PATH
 export PATH=/C/Python37:$PATH
 which python
 python get-pip.py
-pip install --upgrade git+https://github.com/anthony-tuininga/cx_Freeze.git@master
+python -m pip install --upgrade git+https://github.com/anthony-tuininga/cx_Freeze.git@master
 
 set +x
