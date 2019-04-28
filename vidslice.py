@@ -9,7 +9,7 @@ from options import OptionsPanel
 from output import OutputPanel
 from sources import SourcesPanel, update_ytdl
 
-VERSION = "1.4"
+VERSION = "1.5"
 
 
 def check_update(parent):
