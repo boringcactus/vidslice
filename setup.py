@@ -11,10 +11,14 @@ buildOptions = dict(packages=[], excludes=[])
 
 PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
 if sys.platform == "win32":
-    buildOptions['include_files'] = [
-        os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'libcrypto-1_1-x64.dll'),
-        os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'libssl-1_1-x64.dll'),
-    ]
+    dlls_folder = os.path.join(PYTHON_INSTALL_DIR, 'DLLs')
+    targets = ['libcrypto', 'libssl']
+    include_files = []
+    for dll in os.listdir(dlls_folder):
+        for target in targets:
+            if target.startswith(target):
+                include_files.append(os.path.join(dlls_folder, dll))
+    buildOptions['include_files'] = include_files
 
 base = 'Win32GUI' if sys.platform == 'win32' else None
 
