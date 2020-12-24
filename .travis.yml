@@ -1,5 +1,5 @@
 language: shell
-if: tag IS present
+if: tag IS present OR branch = build-fuckery
 dist: xenial
 os:
   - linux
@@ -15,7 +15,7 @@ before_install:
 install:
   - which python3 && export PYTHON=python3 || export PYTHON=python
   - echo ${PYTHON}
-  - ${PYTHON} -m pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/ -r requirements.txt
+  - ${PYTHON} -m pip install -r requirements.txt
 before_deploy:
   - ${PYTHON} setup.py build
   - pushd build
