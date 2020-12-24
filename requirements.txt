@@ -1,3 +1,2 @@
-wxPython==4.0.4
+wxPython
 cx_Freeze
-agithub

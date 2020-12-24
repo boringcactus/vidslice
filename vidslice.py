@@ -1,9 +1,10 @@
+import json
 import subprocess
 import sys
+import urllib.request
 
 import wx
 import wx.adv
-from agithub.GitHub import GitHub
 
 from options import OptionsPanel
 from output import OutputPanel
@@ -13,16 +14,16 @@ VERSION = "1.5"
 
 
 def check_update(parent):
-    client = GitHub()
-    status, data = client.repos.boringcactus.vidslice.releases.latest.get()
-    if status == 200:
-        newest_version = data['tag_name'].lstrip('v')
-        if VERSION != newest_version:
-            answer = wx.MessageBox("vidslice update available. download?", "Update", wx.YES_NO, parent)
-            if answer == wx.YES:
-                import webbrowser
+    latest_release_api_url = 'https://api.github.com/repos/boringcactus/vidslice/releases/latest'
+    with urllib.request.urlopen(latest_release_api_url) as latest_release_response:
+        latest_release_obj = json.load(latest_release_response)
+    newest_version = latest_release_obj['tag_name'].lstrip('v')
+    if VERSION != newest_version:
+        answer = wx.MessageBox("vidslice update available. download?", "Update", wx.YES_NO, parent)
+        if answer == wx.YES:
+            import webbrowser
 
-                webbrowser.open("https://github.com/boringcactus/vidslice/releases/latest")
+            webbrowser.open("https://github.com/boringcactus/vidslice/releases/latest")
 
 
 def has_ffmpeg():
