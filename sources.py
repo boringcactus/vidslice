@@ -10,7 +10,8 @@ import wx
 
 def has_ytdl():
     try:
-        subprocess.run(["youtube-dl", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["youtube-dl", "--version"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         return True
     except FileNotFoundError:
         return False
@@ -18,9 +19,11 @@ def has_ytdl():
 
 def update_ytdl(parent_win):
     try:
-        youtube_dl_found = subprocess.run(['where', 'youtube-dl'], stdout=subprocess.PIPE, text=True)
+        youtube_dl_found = subprocess.run(['where', 'youtube-dl'], stdout=subprocess.PIPE, text=True,
+                                          creationflags=subprocess.CREATE_NO_WINDOW)
     except FileNotFoundError:
-        youtube_dl_found = subprocess.run(['which', 'youtube-dl'], stdout=subprocess.PIPE, text=True)
+        youtube_dl_found = subprocess.run(['which', 'youtube-dl'], stdout=subprocess.PIPE, text=True,
+                                          creationflags=subprocess.CREATE_NO_WINDOW)
     if youtube_dl_found.returncode != 0:
         def poll():
             answer = wx.MessageBox("Could not find youtube-dl. Open vidslice README?", "Error", wx.YES_NO, parent_win)
@@ -32,7 +35,8 @@ def update_ytdl(parent_win):
         wx.CallAfter(poll)
     youtube_dl_path = youtube_dl_found.stdout.split("\n")[0]
     old_mtime = os.stat(youtube_dl_path).st_mtime
-    proc = subprocess.run(["youtube-dl", "-U"], stdout=subprocess.PIPE, text=True)
+    proc = subprocess.run(["youtube-dl", "-U"], stdout=subprocess.PIPE, text=True,
+                          creationflags=subprocess.CREATE_NO_WINDOW)
     if not proc.stdout.startswith("youtube-dl is up-to-date"):
         while os.stat(youtube_dl_path).st_mtime == old_mtime:
             from time import sleep
@@ -91,7 +95,8 @@ class SourcesPanel(wx.Panel):
             # noinspection PyArgumentList
             proc = subprocess.Popen([
                 'youtube-dl', '-o', file.name + '.%(ext)s', self.url_text.GetValue()
-            ], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            ], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW)
             while proc.poll() is None:
                 out_data = proc.stdout.readline()
                 if out_data != '':
@@ -116,7 +121,7 @@ class SourcesPanel(wx.Panel):
             'ffprobe', '-v', 'error', '-of', 'json',
             '-show_entries', 'format=start_time,duration:stream=index,codec_type,avg_frame_rate,width,height',
             self.file_text.GetValue()
-        ], capture_output=True, text=True)
+        ], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
         if result.returncode == 0:
             ffprobe_data = json.loads(result.stdout)
             self.set_status("Successfully loaded media info")

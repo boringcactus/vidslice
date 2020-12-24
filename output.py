@@ -106,7 +106,7 @@ class OutputPanel(wx.Panel):
         def run():
             # noinspection PyArgumentList
             proc = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                    text=True)
+                                    text=True, creationflags=subprocess.CREATE_NO_WINDOW)
             while proc.poll() is None:
                 out_data = proc.stdout.readline()
                 if out_data != '':
@@ -120,7 +120,7 @@ class OutputPanel(wx.Panel):
         def preview(code):
             if code == 0:
                 out_file = self.file_text.GetValue()
-                subprocess.Popen(['ffplay', '-autoexit', out_file])
+                subprocess.Popen(['ffplay', '-autoexit', out_file], creationflags=subprocess.CREATE_NO_WINDOW)
 
         self.handle_run_pressed(_event, callback=preview)
 
