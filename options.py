@@ -1,4 +1,6 @@
-import wx
+import typing
+from tkinter import *
+from tkinter import ttk
 
 HEADERS_ROW = 0
 START_ROW = 1
@@ -20,135 +22,113 @@ class FFmpegOptions:
 
 
 class Property:
-    def __init__(self, parent, name, *, label=None, orig=None, edit=None, new_class=None, new=None):
+    def __init__(self, parent, name, row, convert: typing.Callable = int):
         self.handlers = []
-        if label is None:
-            label = wx.StaticText(parent, label=name)
-        self.label = label
-        if orig is None:
-            orig = wx.StaticText(parent, label="N/A")
-        self.orig = orig
-        if edit is None:
-            edit = wx.CheckBox(parent)
-            edit.Bind(wx.EVT_CHECKBOX, self.handle_edit)
-        self.edit = edit
-        if new is None:
-            if new_class is None:
-                new_class = wx.TextCtrl
-            new = new_class(parent)
-            new.Bind(wx.EVT_SPINCTRLDOUBLE, self.handle_change)
-            new.Bind(wx.EVT_SPINCTRL, self.handle_change)
-            new.Disable()
-        self.new = new
-
-    def add_to(self, sizer, row):
-        sizer.Add(self.label, wx.GBPosition(row, LABEL_COL))
-        sizer.Add(self.orig, wx.GBPosition(row, ORIG_COL))
-        sizer.Add(self.edit, wx.GBPosition(row, EDIT_BOX_COL))
-        sizer.Add(self.new, wx.GBPosition(row, NEW_COL), flag=wx.EXPAND)
+        ttk.Label(parent, text=name).grid(column=LABEL_COL, row=row, sticky=(E, W))
+        self.orig = StringVar(parent, value="N/A")
+        ttk.Label(parent, textvariable=self.orig).grid(column=ORIG_COL, row=row, sticky=(E, W))
+        self.edit = BooleanVar(parent)
+        self.edit_widget = ttk.Checkbutton(parent, variable=self.edit, command=self.handle_edit)
+        self.edit_widget.grid(column=EDIT_BOX_COL, row=row, sticky=(E, W))
+        self.new = ttk.Spinbox(parent, command=self.handle_change)
+        self.new.state(['disabled'])
+        self.new.grid(column=NEW_COL, row=row, sticky=(E, W))
+        self.convert = convert
+        self.disable()
 
     def disable(self):
         self.enable(False)
 
     def enable(self, enabled=True):
         if enabled:
-            self.edit.Enable()
+            self.edit_widget.state(['!disabled'])
         else:
-            self.edit.SetValue(False)
-            self.edit.Disable()
-            self.new.Disable()
+            self.edit.set(False)
+            self.edit_widget.state(['disabled'])
+            self.new.state(['disabled'])
 
     def is_enabled(self):
-        return self.edit.Enabled
+        return self.edit_widget.instate(['!disabled'])
 
     def is_edit(self):
-        return self.edit.GetValue()
+        return self.edit.get()
 
     def set_orig(self, val):
-        self.orig.SetLabel(str(val))
+        self.orig.set(str(val))
 
     def get_orig(self):
-        return self.orig.GetLabel()
+        return self.orig.get()
 
     def set_calc_new(self, val):
         if not self.is_edit():
-            if self.new.GetMin() > val:
-                self.new.SetMin(val)
-            if self.new.GetMax() < val:
-                self.new.SetMax(val)
-            self.new.SetValue(val)
+            if self.convert(self.new['from']) > val:
+                self.new.configure(from_=val)
+            if self.convert(self.new['to']) < val:
+                self.new.configure(to=val)
+            self.new.set(val)
 
     def set_range(self, min, max):
-        self.new.SetRange(min, max)
+        self.new.configure(from_=min, to=max)
 
     def get_final(self):
-        if self.edit.GetValue():
-            return self.new.GetValue()
-        else:
-            return self.orig.GetLabel()
+        if len(self.new.get()) == 0:
+            return self.orig.get()
+        return self.new.get()
 
-    def handle_edit(self, _event):
-        self.new.Enable(self.edit.GetValue())
+    def handle_edit(self, *args):
+        if self.edit.get():
+            self.new.state(['!disabled'])
+        else:
+            self.new.state(['disabled'])
         self.handle_change(None)
 
     def on_change(self, callback):
         self.handlers.append(callback)
 
-    def handle_change(self, _event):
+    def handle_change(self, *args):
         for handler in self.handlers:
             handler()
 
 
-class OptionsPanel(wx.Panel):
+class OptionsPanel(ttk.LabelFrame):
     """
     A Panel displaying ffmpeg options
     """
 
     def __init__(self, *args, **kw):
-        super(OptionsPanel, self).__init__(*args, **kw)
+        super(OptionsPanel, self).__init__(*args, text="Options", **kw)
 
-        root_sizer = wx.StaticBoxSizer(wx.VERTICAL, self, label="Options")
-        self.SetSizer(root_sizer)
-        main = wx.Panel(self)
-        root_sizer.Add(main, proportion=1, flag=wx.EXPAND, border=5)
-        main_sizer = wx.GridBagSizer(5, 5)
-        main.SetSizer(main_sizer)
+        def place_header(text, **kwargs):
+            ttk.Label(self, text=text, font='TkHeadingFont', justify='center', anchor='center'
+                      ).grid(sticky=(E, W), **kwargs)
 
-        def make_header(text):
-            st = wx.StaticText(main, label=text, style=wx.ALIGN_CENTER_HORIZONTAL)
-            st.SetFont(st.GetFont().Bold())
-            return st
+        place_header("Field", column=LABEL_COL, row=HEADERS_ROW)
+        place_header("Original Value", column=ORIG_COL, row=HEADERS_ROW)
+        place_header("Edit?", column=EDIT_BOX_COL, row=HEADERS_ROW)
+        place_header("New Value", column=NEW_COL, row=HEADERS_ROW)
 
-        main_sizer.Add(make_header("Field"), wx.GBPosition(HEADERS_ROW, LABEL_COL), flag=wx.EXPAND)
-        main_sizer.Add(make_header("Original Value"), wx.GBPosition(HEADERS_ROW, ORIG_COL), flag=wx.EXPAND)
-        main_sizer.Add(make_header("Edit?"), wx.GBPosition(HEADERS_ROW, EDIT_BOX_COL), flag=wx.EXPAND)
-        main_sizer.Add(make_header("New Value"), wx.GBPosition(HEADERS_ROW, NEW_COL), flag=wx.EXPAND)
-
-        self.start_time = Property(main, "Start time (seconds)", new_class=wx.SpinCtrlDouble)
-        self.start_time.add_to(main_sizer, START_ROW)
+        self.start_time = Property(self, "Start time (seconds)", START_ROW, float)
         self.start_time.on_change(self.enforce_constraints)
 
-        self.end_time = Property(main, "End time (seconds)", new_class=wx.SpinCtrlDouble)
-        self.end_time.add_to(main_sizer, END_ROW)
+        self.end_time = Property(self, "End time (seconds)", END_ROW, float)
         self.end_time.on_change(self.enforce_constraints)
 
-        self.duration = Property(main, "Duration (seconds)", new_class=wx.SpinCtrlDouble)
-        self.duration.add_to(main_sizer, DURATION_ROW)
+        self.duration = Property(self, "Duration (seconds)", DURATION_ROW, float)
         self.duration.on_change(self.enforce_constraints)
 
-        self.width = Property(main, "Width", new_class=wx.SpinCtrl)
-        self.width.add_to(main_sizer, WIDTH_ROW)
+        self.width = Property(self, "Width", WIDTH_ROW, int)
         self.width.on_change(self.enforce_constraints)
 
-        self.height = Property(main, "Height", new_class=wx.SpinCtrl)
-        self.height.add_to(main_sizer, HEIGHT_ROW)
+        self.height = Property(self, "Height", HEIGHT_ROW, int)
         self.height.on_change(self.enforce_constraints)
 
-        self.framerate = Property(main, "Framerate", new_class=wx.SpinCtrlDouble)
-        self.framerate.add_to(main_sizer, FRAMERATE_ROW)
+        self.framerate = Property(self, "Framerate", FRAMERATE_ROW, float)
         self.framerate.on_change(self.enforce_constraints)
 
-        self.Disable()
+        for child in self.winfo_children():
+            child.grid_configure(padx=2, pady=2)
+
+        self.state(['disabled'])
 
     def enforce_constraints(self):
         self.start_time.enable()
@@ -211,11 +191,13 @@ class OptionsPanel(wx.Panel):
             self.framerate.set_range(0, orig_framerate)
             self.framerate.set_calc_new(orig_framerate)
 
-    def update(self, info):
+    def update_info(self, info):
         import fractions
 
         if info is None:
-            self.Disable()
+            self.state(['disabled'])
+            for prop in [self.start_time, self.duration, self.end_time, self.width, self.height, self.framerate]:
+                prop.disable()
         else:
             start_time = float(info['format']['start_time'])
             self.start_time.set_orig(start_time)
@@ -229,18 +211,20 @@ class OptionsPanel(wx.Panel):
                              stream['codec_type'] == 'video' and stream['avg_frame_rate'] != '0/0']
             if len(video_streams) > 0:
                 video_stream = video_streams[0]
+                self.width.enable()
                 self.width.set_orig(video_stream['width'])
+                self.height.enable()
                 self.height.set_orig(video_stream['height'])
 
                 framerate = round(float(fractions.Fraction(video_stream['avg_frame_rate'])), 3)
+                self.framerate.enable()
                 self.framerate.set_orig(framerate)
             else:
                 self.width.disable()
                 self.height.disable()
                 self.framerate.disable()
 
-            self.Enable()
-            self.Layout()
+            self.state(['!disabled'])
             self.enforce_constraints()
 
     def ffmpeg_opts(self):
@@ -272,3 +256,6 @@ class OptionsPanel(wx.Panel):
             output_opts += ['-r', str(self.framerate.get_final())]
 
         return FFmpegOptions(input_opts, output_opts)
+
+    def frame_count(self):
+        return float(self.duration.get_final()) * float(self.framerate.get_final())
