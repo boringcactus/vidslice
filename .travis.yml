@@ -1,21 +1,32 @@
 language: shell
-if: tag IS present
-dist: xenial
+if: tag IS present OR branch = build-fuckery
+dist: bionic
 os:
   - linux
   - osx
   - windows
 addons:
+  apt:
+    packages:
+      - python3.7
+      - python3.7-dev
+      - python3-pip
+      - python3-setuptools
+      - python3-tk
   homebrew:
     packages:
-      - python
+      - python@3.7
 before_install:
   - chmod +x scripts/setup_${TRAVIS_OS_NAME}.sh
   - . scripts/setup_${TRAVIS_OS_NAME}.sh
 install:
-  - which python3 && export PYTHON=python3 || export PYTHON=python
+  - which python && export PYTHON=python || echo whatever
+  - which python3 && export PYTHON=python3 || echo whatever
+  - which python3.7 && export PYTHON=python3.7 || echo whatever
   - echo ${PYTHON}
-  - ${PYTHON} -m pip install -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04/ -r requirements.txt
+  - ${PYTHON} -m pip install -r requirements.txt
+script:
+  - ${PYTHON} setup.py build
 before_deploy:
   - ${PYTHON} setup.py build
   - pushd build
