@@ -16,6 +16,8 @@ install:
   - which python3 && export PYTHON=python3 || export PYTHON=python
   - echo ${PYTHON}
   - ${PYTHON} -m pip install -r requirements.txt
+script:
+  - ${PYTHON} setup.py build
 before_deploy:
   - ${PYTHON} setup.py build
   - pushd build
