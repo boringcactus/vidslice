@@ -1,14 +1,19 @@
 language: shell
 if: tag IS present OR branch = build-fuckery
-dist: xenial
+dist: bionic
 os:
   - linux
   - osx
   - windows
 addons:
+  apt:
+    packages:
+      - python3.7
+      - python3-pip
+      - python3-tk
   homebrew:
     packages:
-      - python
+      - python@3.7
 before_install:
   - chmod +x scripts/setup_${TRAVIS_OS_NAME}.sh
   - . scripts/setup_${TRAVIS_OS_NAME}.sh
