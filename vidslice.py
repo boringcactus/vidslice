@@ -7,6 +7,7 @@ from tkinter import ttk
 
 from options import OptionsPanel
 from output import OutputPanel
+from preview import PreviewPanel
 from sources import SourcesPanel, update_ytdl
 
 VERSION = "1.6"
@@ -45,20 +46,24 @@ class VidsliceFrame:
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
 
-        # set up sources panel
         self.sources_panel = SourcesPanel(mainframe)
-        self.sources_panel.grid(column=0, row=0, columnspan=2, sticky=(W, E), padx=5, pady=5)
+        self.sources_panel.grid(column=0, row=0, columnspan=2, sticky=(W, E, N, S), padx=5, pady=5)
 
-        # set up options panel
         self.options_panel = OptionsPanel(mainframe)
-        self.options_panel.grid(column=0, row=1, sticky=(W, E, N), padx=5, pady=5)
-        mainframe.rowconfigure(1, weight=1)
+        self.options_panel.grid(column=0, row=1, columnspan=2, sticky=(W, N, S), padx=5, pady=5)
         self.sources_panel.on_update(self.options_panel.update_info)
 
-        # set up output panel
+        self.preview_panel = PreviewPanel(mainframe, get_ffmpeg_args=self.options_panel.ffmpeg_opts,
+                                          get_frame_count=self.options_panel.frame_count)
+        self.preview_panel.grid(column=0, row=2, sticky=(W, E, N, S), padx=5, pady=5)
+        mainframe.rowconfigure(2, weight=1)
+        mainframe.columnconfigure(0, weight=2)
+        self.sources_panel.on_update(
+            lambda data: self.preview_panel.set_input_path(self.sources_panel.get_file(), data))
+
         self.output_panel = OutputPanel(mainframe, get_ffmpeg_args=self.options_panel.ffmpeg_opts,
                                         get_frame_count=self.options_panel.frame_count)
-        self.output_panel.grid(column=1, row=1, sticky=(W, E, N, S), padx=5, pady=5)
+        self.output_panel.grid(column=1, row=2, sticky=(W, E, N, S), padx=5, pady=5)
         mainframe.columnconfigure(1, weight=1)
         self.sources_panel.on_update(lambda data: self.output_panel.set_input_path(self.sources_panel.get_file(), data))
 
