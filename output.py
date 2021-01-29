@@ -131,6 +131,7 @@ class OutputPanel(ttk.LabelFrame):
                         self.progress['value'] = float(progress_data.group(1))
                     else:
                         self.logs.set(self.logs.get() + out_data)
+            self.progress['value'] = self.progress['maximum']
             self.enable(True)
             callback(proc.returncode)
 
@@ -153,8 +154,9 @@ class OutputPanel(ttk.LabelFrame):
         self.handle_run_pressed(*args, callback=quit)
 
     def set_input_path(self, path, data):
-        self.enable(data is not None)
         if data is None:
+            self.enable(False)
             self.input_path = None
         else:
+            self.handle_file_changed()
             self.input_path = path
