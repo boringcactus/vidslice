@@ -9,6 +9,10 @@ DURATION_ROW = 3
 WIDTH_ROW = 4
 HEIGHT_ROW = 5
 FRAMERATE_ROW = 6
+CROP_TOP_ROW = 7
+CROP_BOTTOM_ROW = 8
+CROP_LEFT_ROW = 9
+CROP_RIGHT_ROW = 10
 LABEL_COL = 0
 ORIG_COL = 1
 EDIT_BOX_COL = 2
@@ -16,9 +20,16 @@ NEW_COL = 3
 
 
 class FFmpegOptions:
-    def __init__(self, input, output):
+    def __init__(self, input, output, vf):
         self.input = input
         self.output = output
+        self.vf = vf
+
+    def output_with_vf(self):
+        if len(self.vf) > 0:
+            return self.output + ['-vf', ','.join(self.vf)]
+        else:
+            return self.output
 
 
 class Property:
@@ -125,6 +136,18 @@ class OptionsPanel(ttk.LabelFrame):
         self.framerate = Property(self, "Framerate", FRAMERATE_ROW, float)
         self.framerate.on_change(self.enforce_constraints)
 
+        self.crop_top = Property(self, "Crop Top", CROP_TOP_ROW, int)
+        self.crop_top.on_change(self.enforce_constraints)
+
+        self.crop_bottom = Property(self, "Crop Bottom", CROP_BOTTOM_ROW, int)
+        self.crop_bottom.on_change(self.enforce_constraints)
+
+        self.crop_left = Property(self, "Crop Left", CROP_LEFT_ROW, int)
+        self.crop_left.on_change(self.enforce_constraints)
+
+        self.crop_right = Property(self, "Crop Right", CROP_RIGHT_ROW, int)
+        self.crop_right.on_change(self.enforce_constraints)
+
         for child in self.winfo_children():
             child.grid_configure(padx=2, pady=2)
 
@@ -186,6 +209,16 @@ class OptionsPanel(ttk.LabelFrame):
             self.width.set_calc_new(round(orig_width / orig_height * new_height))
             self.height.set_calc_new(round(orig_height / orig_width * new_width))
 
+            self.crop_top.set_calc_new(0)
+            self.crop_top.set_range(0, int(self.height.get_final()) - int(self.crop_bottom.get_final()))
+            self.crop_bottom.set_calc_new(0)
+            self.crop_bottom.set_range(0, int(self.height.get_final()) - int(self.crop_top.get_final()))
+
+            self.crop_right.set_calc_new(0)
+            self.crop_right.set_range(0, int(self.width.get_final()) - int(self.crop_left.get_final()))
+            self.crop_left.set_calc_new(0)
+            self.crop_left.set_range(0, int(self.width.get_final()) - int(self.crop_right.get_final()))
+
         if self.framerate.is_enabled():
             orig_framerate = float(self.framerate.get_orig())
             self.framerate.set_range(0, orig_framerate)
@@ -215,6 +248,14 @@ class OptionsPanel(ttk.LabelFrame):
                 self.width.set_orig(video_stream['width'])
                 self.height.enable()
                 self.height.set_orig(video_stream['height'])
+                self.crop_top.enable()
+                self.crop_top.set_orig(0)
+                self.crop_bottom.enable()
+                self.crop_bottom.set_orig(0)
+                self.crop_left.enable()
+                self.crop_left.set_orig(0)
+                self.crop_right.enable()
+                self.crop_right.set_orig(0)
 
                 framerate = round(float(fractions.Fraction(video_stream['avg_frame_rate'])), 3)
                 self.framerate.enable()
@@ -223,6 +264,10 @@ class OptionsPanel(ttk.LabelFrame):
                 self.width.disable()
                 self.height.disable()
                 self.framerate.disable()
+                self.crop_top.disable()
+                self.crop_bottom.disable()
+                self.crop_left.disable()
+                self.crop_right.disable()
 
             self.state(['!disabled'])
             self.enforce_constraints()
@@ -230,6 +275,7 @@ class OptionsPanel(ttk.LabelFrame):
     def ffmpeg_opts(self):
         input_opts = []
         output_opts = []
+        vf = []
 
         if self.start_time.is_edit():
             input_opts += ['-ss', str(self.start_time.get_final())]
@@ -250,12 +296,18 @@ class OptionsPanel(ttk.LabelFrame):
                 width = "-1"
             if not self.height.is_edit():
                 height = "-1"
-            output_opts += ['-vf', 'scale=' + width + ':' + height]
+            vf += ['scale=' + width + ':' + height]
+
+        if self.crop_top.is_edit() or self.crop_bottom.is_edit() or \
+                self.crop_left.is_edit() or self.crop_right.is_edit():
+            out_w = int(self.width.get_final()) - int(self.crop_left.get_final()) - int(self.crop_right.get_final())
+            out_h = int(self.height.get_final()) - int(self.crop_top.get_final()) - int(self.crop_bottom.get_final())
+            vf += [f'crop={out_w}:{out_h}:{self.crop_left.get_final()}:{self.crop_top.get_final()}']
 
         if self.framerate.is_edit():
             output_opts += ['-r', str(self.framerate.get_final())]
 
-        return FFmpegOptions(input_opts, output_opts)
+        return FFmpegOptions(input_opts, output_opts, vf)
 
     def frame_count(self):
         return float(self.duration.get_final()) * float(self.framerate.get_final())

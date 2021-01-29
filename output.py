@@ -9,7 +9,7 @@ from options import FFmpegOptions
 
 
 class OutputPanel(ttk.LabelFrame):
-    def __init__(self, *args, get_ffmpeg_args=lambda: FFmpegOptions([], []), get_frame_count=lambda: 0, **kw):
+    def __init__(self, *args, get_ffmpeg_args=lambda: FFmpegOptions([], [], []), get_frame_count=lambda: 0, **kw):
         super(OutputPanel, self).__init__(*args, text='Output', **kw)
         self.update_listeners = []
         self.input_path = None
@@ -90,7 +90,7 @@ class OutputPanel(ttk.LabelFrame):
         self.progress['maximum'] = float(self.get_frame_count())
         print(self.get_frame_count())
         input_args = real_args.input
-        output_args = real_args.output
+        output_args = real_args.output_with_vf()
         output_path = self.file_text.get()
         (folder, name) = os.path.split(output_path)
         (name, ext) = os.path.splitext(name)
