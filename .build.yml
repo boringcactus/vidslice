@@ -1,0 +1,14 @@
+image: alpine/latest
+packages:
+  - py3-pip
+sources:
+  - https://git.sr.ht/~boringcactus/vidslice
+tasks:
+  - install: |
+      cd vidslice
+      python3 -m pip install -r requirements.txt
+  - build: |
+      cd vidslice
+      python3 -m zipapp vidslice -o vidslice-dev.pyw -c
+artifacts:
+  - vidslice/vidslice-dev.pyw
