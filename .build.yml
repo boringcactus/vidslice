@@ -1,6 +1,8 @@
 image: alpine/latest
 packages:
   - py3-pip
+  - p7zip
+  - zip
 sources:
   - https://git.sr.ht/~boringcactus/vidslice
 tasks:
@@ -9,6 +11,17 @@ tasks:
       python3 -m pip install -r requirements.txt
   - build: |
       cd vidslice
-      python3 -m zipapp vidslice -o vidslice-dev.pyw -c
+      python3 -m zipapp vidslice -o vidslice.pyw -c
+  - build-full: |
+      cd vidslice
+      wget https://yt-dl.org/downloads/latest/youtube-dl.exe
+      wget https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z
+      p7zip -d ffmpeg-release-full-shared.7z
+      cd ffmpeg-*-full_build-shared
+      cp LICENSE ../LICENSE-ffmpeg
+      cp bin/* ../
+      cd ..
+      zip vidslice-full-win.zip vidslice.pyw *.exe *.dll LICENSE LICENSE-ffmpeg
 artifacts:
-  - vidslice/vidslice-dev.pyw
+  - vidslice/vidslice.pyw
+  - vidslice/vidslice-full-win.zip
