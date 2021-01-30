@@ -11,7 +11,7 @@ from output import OutputPanel
 from preview import PreviewPanel
 from sources import SourcesPanel, update_ytdl
 
-VERSION = "1.6"
+VERSION = "1.7"
 
 
 def check_update(parent):
