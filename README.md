@@ -5,9 +5,13 @@ video manipulator wrapping youtube-dl and ffmpeg
 ![screenshot of vidslice demonstrating options](screenshot.png)
 
 ## Installing
-1. Download the .zip for your preferred OS [here](https://github.com/boringcactus/vidslice/releases/latest) and extract it somewhere convenient.
-2. If you don't have it already, [download ffmpeg](https://ffmpeg.org/download.html#get-packages) (if you're on Windows, you want Windows Builds and then the default options are fine) and make sure ffmpeg.exe, ffprobe.exe, and ffplay.exe are all next to vidslice.exe (or however that'll work on a Mac, hit me up if you have an explanation for this).
-3. If you want to be able to download things, [download youtube-dl](https://rg3.github.io/youtube-dl/download.html) and put it in the same place as ffmpeg.
+1. Make sure you have [Python](https://www.python.org/downloads/) installed.
+2. [Download vidslice](https://github.com/boringcactus/vidslice/releases/latest).
+
+   a. If you already have ffmpeg and youtube-dl installed, download `vidslice.pyw`.
+
+   b. If you don't, download `vidslice-full-win.zip`. (If you're not on Windows, you'll have to install ffmpeg and
+   youtube-dl yourself, sorry.)
 
 ## Using
 If you already have a video file in a format supported by ffmpeg (which is most of them), you can use the "Browse" button in the Sources panel to load in your video.
